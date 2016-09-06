@@ -25,11 +25,8 @@ class ObservableSetTest
         observers += KeylessChange.Observer.new()
         {
             change ->
-            when (change.action)
-            {
-                KeylessChange.Action.ADD -> addedElements.add(change.value)
-                KeylessChange.Action.REMOVE -> removedElements.add(change.value)
-            }
+            addedElements.addAll(change.added)
+            removedElements.addAll(change.removed)
         }
     }
 

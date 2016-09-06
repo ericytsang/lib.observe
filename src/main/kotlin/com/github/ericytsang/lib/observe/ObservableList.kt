@@ -5,7 +5,7 @@ import java.util.LinkedHashSet
 /**
  * Created by surpl on 8/21/2016.
  */
-class ObservableList<E>(val wrapee:MutableList<E>):MutableList<E>
+class ObservableList<E>(val wrapee:MutableList<E>):MutableList<E>,KeyedChange.Observable<Int,E>
 {
     override val size:Int get() = wrapee.size
     override fun contains(element:E):Boolean = wrapee.contains(element)
@@ -25,7 +25,9 @@ class ObservableList<E>(val wrapee:MutableList<E>):MutableList<E>
         if (elements.isNotEmpty())
         {
             wrapee.addAll(index,elements)
-            val change = KeyedChange.newAdd(this,index..(index+elements.size-1),elements)
+            val change = KeyedChange(
+                observable = this,
+                added = elements.mapIndexed { i, e -> index+i to e }.toMap())
             observers.forEach {it.onChange(change)}
             return true
         }
@@ -43,7 +45,9 @@ class ObservableList<E>(val wrapee:MutableList<E>):MutableList<E>
     override fun add(index:Int,element:E)
     {
         wrapee.add(index,element)
-        val change = KeyedChange.newAdd(this,index..index,listOf(element))
+        val change = KeyedChange(
+            observable = this,
+            added = mapOf(index to element))
         observers.forEach {it.onChange(change)}
     }
 
@@ -51,7 +55,9 @@ class ObservableList<E>(val wrapee:MutableList<E>):MutableList<E>
     {
         val removed = wrapee.toList()
         wrapee.clear()
-        val change = KeyedChange.newRemove(this,removed.indices,removed)
+        val change = KeyedChange(
+            observable = this,
+            removed = removed.mapIndexed {i,e -> i to e}.toMap())
         observers.forEach {it.onChange(change)}
     }
     override fun remove(element:E):Boolean
@@ -71,9 +77,12 @@ class ObservableList<E>(val wrapee:MutableList<E>):MutableList<E>
     override fun retainAll(elements:Collection<E>):Boolean = wrapee.filter {it !in elements}.map {remove(it)}.any()
     override fun removeAt(index:Int):E
     {
-        val change = KeyedChange.newRemove(this,index..index,listOf(wrapee.removeAt(index)))
+        val removed = wrapee.removeAt(index)
+        val change = KeyedChange(
+            observable = this,
+            removed = mapOf(index to removed))
         observers.forEach {it.onChange(change)}
-        return change.removed!!.single()
+        return removed
     }
 
     override fun iterator():MutableIterator<E> = listIterator()
@@ -83,7 +92,7 @@ class ObservableList<E>(val wrapee:MutableList<E>):MutableList<E>
         observers += KeyedChange.Observer.new()
         {
             change ->
-            val revisedChange = KeyedChange.new(this@ObservableList,change.key..change.key,change.removed?.let {listOf(it)},change.added?.let {listOf(it)},change.action)
+            val revisedChange = change.copy(observable = this@ObservableList)
             this@ObservableList.observers.forEach {it.onChange(revisedChange)}
         }
     }
@@ -92,7 +101,7 @@ class ObservableList<E>(val wrapee:MutableList<E>):MutableList<E>
     {
         val removed = get(index)
         wrapee[index] = element
-        val change = KeyedChange.newSet(this,index..index,listOf(removed),listOf(element))
+        val change = KeyedChange(this,mapOf(index to removed),mapOf(index to element))
         observers.forEach {it.onChange(change)}
         return removed
     }
@@ -102,11 +111,13 @@ class ObservableList<E>(val wrapee:MutableList<E>):MutableList<E>
         observers += KeyedChange.Observer.new()
         {
             change ->
-            val newKey = (change.key.first+fromIndex)..(change.key.last+fromIndex)
-            val newChange = change.copy(observable = this@ObservableList,key = newKey)
+            val newChange = KeyedChange(
+                observable = this@ObservableList,
+                removed = change.removed.entries.associate {fromIndex+it.key to it.value},
+                added = change.added.entries.associate {fromIndex+it.key to it.value})
             this@ObservableList.observers.forEach {it.onChange(newChange)}
         }
     }
 
-    val observers = LinkedHashSet<KeyedChange.Observer<ObservableList<E>,IntRange,Collection<E>>>()
+    override val observers = LinkedHashSet<KeyedChange.Observer<Int,E>>()
 }

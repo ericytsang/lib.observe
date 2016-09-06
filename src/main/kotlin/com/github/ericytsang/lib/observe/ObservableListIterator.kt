@@ -6,11 +6,18 @@ import java.util.LinkedHashSet
  * Created by surpl on 8/21/2016.
  */
 // todo: add test cases!
-class ObservableListIterator<E>(val wrapee:MutableListIterator<E>):MutableListIterator<E>
+class ObservableListIterator<E>(val wrapee:MutableListIterator<E>):MutableListIterator<E>,KeyedChange.Observable<Int,E>
 {
-    val observers = LinkedHashSet<KeyedChange.Observer<ObservableListIterator<E>,Int,E>>()
+    override val observers = LinkedHashSet<KeyedChange.Observer<Int,E>>()
 
     private var getLastReturned:()->IndexedValue<E> = {throw IllegalStateException("neither next nor previous have been called")}
+
+    override fun get(key:Int):E?
+    {
+        while (nextIndex() < key) next()
+        while (nextIndex() > key) previous()
+        return next()
+    }
 
     override fun hasNext():Boolean = wrapee.hasNext()
     override fun hasPrevious():Boolean = wrapee.hasPrevious()
@@ -37,7 +44,9 @@ class ObservableListIterator<E>(val wrapee:MutableListIterator<E>):MutableListIt
     {
         wrapee.remove()
         val lastReturned = getLastReturned()
-        val change = KeyedChange.newRemove(this,lastReturned.index,lastReturned.value)
+        val change = KeyedChange(
+            observable = this,
+            removed = mapOf(lastReturned.index to lastReturned.value))
         getLastReturned = {throw IllegalStateException("remove or add has been called after the last call to next or previous")}
         observers.forEach {it.onChange(change)}
     }
@@ -46,7 +55,10 @@ class ObservableListIterator<E>(val wrapee:MutableListIterator<E>):MutableListIt
     {
         wrapee.set(element)
         val lastReturned = getLastReturned()
-        val change = KeyedChange.newSet(this,lastReturned.index,lastReturned.value,element)
+        val change = KeyedChange(
+            observable = this,
+            removed = mapOf(previousIndex() to lastReturned.value),
+            added = mapOf(previousIndex() to element))
         getLastReturned = {lastReturned.copy(value = element)}
         observers.forEach {it.onChange(change)}
     }
@@ -55,7 +67,9 @@ class ObservableListIterator<E>(val wrapee:MutableListIterator<E>):MutableListIt
     {
         wrapee.add(element)
         getLastReturned = {throw IllegalStateException("remove or add has been called after the last call to next or previous")}
-        val change = KeyedChange.newAdd(this,previousIndex(),element)
+        val change = KeyedChange(
+            observable = this,
+            added = mapOf(previousIndex() to element))
         observers.forEach {it.onChange(change)}
     }
 }

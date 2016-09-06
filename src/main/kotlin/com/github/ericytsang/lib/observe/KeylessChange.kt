@@ -3,35 +3,38 @@ package com.github.ericytsang.lib.observe
 /**
  * object that contains data about a change that occurred to a collection.
  */
-data class KeylessChange<out Observable,out Value> private constructor(val observable:Observable,val value:Value,val action:Action)
+data class KeylessChange<Value>(val observable:Observable<Value>,val removed:Set<Value> = emptySet(),val added:Set<Value> = emptySet())
 {
-    companion object
-    {
-        fun <Collection,Value> new(source:Collection,value:Value,action:Action):KeylessChange<Collection,Value> = KeylessChange(source,value,action)
-        fun <Collection,Value> newAdd(source:Collection,element:Value):KeylessChange<Collection,Value> = KeylessChange(source,element,Action.ADD)
-        fun <Collection,Value> newRemove(source:Collection,element:Value):KeylessChange<Collection,Value> = KeylessChange(source,element,Action.REMOVE)
-    }
-
-    enum class Action {ADD,REMOVE}
-
-    interface Observer<in Collection,in Value>
+    interface Observer<Value>
     {
         companion object
         {
-            fun <Collection,Value> new(_onChange:(KeylessChange<Collection,Value>)->Unit):Observer<Collection,Value>
+            fun <Value> new(_onChange:(KeylessChange<Value>)->Unit):Observer<Value>
             {
-                return object:Observer<Collection,Value>
+                return object:Observer<Value>
                 {
-                    override fun onChange(keylessChange:KeylessChange<Collection,Value>) = _onChange(keylessChange)
+                    override fun onChange(keylessChange:KeylessChange<Value>) = _onChange(keylessChange)
                 }
             }
         }
 
-        fun onChange(keylessChange:KeylessChange<Collection,Value>):Unit
+        fun onChange(keylessChange:KeylessChange<Value>):Unit
     }
 
-    // todo: add observable interface!
+    interface Observable<Value>
+    {
+        val observers:MutableSet<KeylessChange.Observer<Value>>
+    }
 }
 
-// todo: add "addAndUpdate" extension method!
-// todo: add "updateAll" extension method!
+fun <Value> KeylessChange.Observable<Value>.addAndUpdate(observer:KeylessChange.Observer<Value>)
+{
+    observers += observer
+    observer.onChange(KeylessChange(this))
+}
+
+fun <Value> KeylessChange.Observable<Value>.updateAll()
+{
+    val change = KeylessChange(this)
+    observers.forEach {it.onChange(change)}
+}

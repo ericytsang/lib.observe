@@ -7,7 +7,7 @@ import org.junit.Test
  */
 class BackedFieldTest
 {
-    val changes = mutableListOf<Change<Int>>()
+    val changes = mutableListOf<FieldChange<Int>>()
 
     val noLargerThan7 = object:BackedField<Int>(4)
     {
@@ -27,7 +27,7 @@ class BackedFieldTest
 
     init
     {
-        noLargerThan7.observers += Change.Observer.new()
+        noLargerThan7.observers += FieldChange.Observer.new()
         {
             changes.add(it)
         }
@@ -39,7 +39,7 @@ class BackedFieldTest
         noLargerThan7.value = 9
         assert(noLargerThan7.value == 7,{"${noLargerThan7.value}"})
         assert(changes == listOf(
-            Change(noLargerThan7,4,7)
+            FieldChange(noLargerThan7,4,7)
         ))
     }
 
@@ -49,7 +49,7 @@ class BackedFieldTest
         noLargerThan7.value = 7
         assert(noLargerThan7.value == 7,{"${noLargerThan7.value}"})
         assert(changes == listOf(
-            Change(noLargerThan7,4,7)
+            FieldChange(noLargerThan7,4,7)
         ))
     }
 
@@ -59,7 +59,7 @@ class BackedFieldTest
         noLargerThan7.value = 2
         assert(noLargerThan7.value == 2,{"${noLargerThan7.value}"})
         assert(changes == listOf(
-            Change(noLargerThan7,4,2)
+            FieldChange(noLargerThan7,4,2)
         ))
     }
 
@@ -67,11 +67,11 @@ class BackedFieldTest
     fun updateAll()
     {
         var count = 0
-        noLargerThan7.observers += Change.Observer.new()
+        noLargerThan7.observers += FieldChange.Observer.new()
         {
             count++
         }
-        noLargerThan7.observers += Change.Observer.new()
+        noLargerThan7.observers += FieldChange.Observer.new()
         {
             count++
         }
@@ -83,11 +83,11 @@ class BackedFieldTest
     fun addAndUpdate()
     {
         var count = 0
-        noLargerThan7.addAndUpdate(Change.Observer.new()
+        noLargerThan7.addAndUpdate(FieldChange.Observer.new()
         {
             count++
         })
-        noLargerThan7.observers += Change.Observer.new()
+        noLargerThan7.observers += FieldChange.Observer.new()
         {
             count++
         }

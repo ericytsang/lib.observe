@@ -7,11 +7,11 @@ import org.junit.Test
  */
 class ObservableIteratorTest
 {
-    val changes = mutableListOf<ObservableIterator.Change<Int>>()
+    val changes = mutableListOf<KeylessChange<Int>>()
 
     val testIterator = ObservableIterator(mutableSetOf(1,2,3,4,5).iterator()).apply()
     {
-        observers += ObservableIterator.Change.Observer.new()
+        observers += KeylessChange.Observer.new()
         {
             changes.add(it)
         }
@@ -32,9 +32,9 @@ class ObservableIteratorTest
         testIterator.remove()
         assert(!testIterator.hasNext())
         assert(changes == listOf(
-            ObservableIterator.Change(testIterator,2),
-            ObservableIterator.Change(testIterator,4),
-            ObservableIterator.Change(testIterator,5)
+            KeylessChange(testIterator,setOf(2),emptySet()),
+            KeylessChange(testIterator,setOf(4),emptySet()),
+            KeylessChange(testIterator,setOf(5),emptySet())
         ),{"changes: $changes"})
     }
 
@@ -59,8 +59,8 @@ class ObservableIteratorTest
             // supposed to catch
         }
         assert(changes == listOf(
-            ObservableIterator.Change(testIterator,2),
-            ObservableIterator.Change(testIterator,4)
+            KeylessChange(testIterator,setOf(2),emptySet()),
+            KeylessChange(testIterator,setOf(4),emptySet())
         ),{"changes: $changes"})
     }
 

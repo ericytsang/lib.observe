@@ -5,9 +5,9 @@ import java.util.LinkedHashSet
 /**
  * Created by surpl on 6/21/2016.
  */
-class ObservableMap<K,V>(val wrapee:MutableMap<K,V>):MutableMap<K,V>
+class ObservableMap<K,V>(val wrapee:MutableMap<K,V>):MutableMap<K,V>,KeyedChange.Observable<K,V>
 {
-    val observers = LinkedHashSet<KeyedChange.Observer<ObservableMap<K,V>,K,V>>()
+    override val observers = LinkedHashSet<KeyedChange.Observer<K,V>>()
 
     override val entries:MutableSet<MutableMap.MutableEntry<K,V>> get() = wrapee.entries
     override val keys:MutableSet<K> get() = wrapee.keys
@@ -22,32 +22,55 @@ class ObservableMap<K,V>(val wrapee:MutableMap<K,V>):MutableMap<K,V>
     override fun equals(other:Any?):Boolean = wrapee.equals(other)
     override fun toString():String = wrapee.toString()
 
-    override fun putAll(from:Map<out K,V>) = from.forEach {put(it.key,it.value)}
+    override fun putAll(from:Map<out K,V>)
+    {
+        val change = KeyedChange(
+            observable = this,
+            added = from.entries.associate {it.key to it.value})
+        wrapee.putAll(from)
+        observers.forEach {it.onChange(change)}
+    }
+
     override fun put(key:K,value:V):V?
     {
-        if (contains(key))
+        return if (contains(key))
         {
             val replaced = wrapee.put(key,value) as V
-            val change = KeyedChange.newSet(this,key,replaced,value)
+            val change = KeyedChange(
+                observable = this,
+                removed = mapOf(key to replaced),
+                added = mapOf(key to value))
             observers.forEach {it.onChange(change)}
-            return replaced
+            replaced
         }
         else
         {
             wrapee.put(key,value)
-            val change = KeyedChange.newAdd(this,key,value)
+            val change = KeyedChange(
+                observable = this,
+                added = mapOf(key to value))
             observers.forEach {it.onChange(change)}
-            return null
+            null
         }
     }
 
-    override fun clear() = keys.toList().forEach {remove(it)}
+    override fun clear()
+    {
+        val change = KeyedChange(
+            observable = this,
+            removed = entries.associate {it.key to it.value})
+        wrapee.clear()
+        observers.forEach {it.onChange(change)}
+    }
+
     override fun remove(key:K):V?
     {
         return if (contains(key))
         {
             val removed = wrapee.remove(key)
-            val change = KeyedChange.newRemove(this,key,removed as V)
+            val change = KeyedChange(
+                observable = this,
+                removed = mapOf(key to removed as V))
             observers.forEach {it.onChange(change)}
             removed
         }

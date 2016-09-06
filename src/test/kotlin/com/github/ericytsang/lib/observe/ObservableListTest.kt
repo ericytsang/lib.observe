@@ -7,7 +7,7 @@ import org.junit.Test
  */
 class ObservableListTest
 {
-    val changes:MutableList<KeyedChange<ObservableList<Int>,IntRange,Collection<Int>>> = mutableListOf()
+    val changes:MutableList<KeyedChange<Int,Int>> = mutableListOf()
 
     val testList = ObservableList(mutableListOf(1,2,3,4,5)).apply()
     {
@@ -23,7 +23,7 @@ class ObservableListTest
         testList[3] = 9
         assert(testList == listOf(1,2,3,9,5),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newSet(testList,3..3,listOf(4),listOf(9))
+            KeyedChange(testList,listOf(4).mapIndexed {i,e -> i+3 to e}.toMap(),listOf(9).mapIndexed {i,e -> i+3 to e}.toMap())
         ),{"changes: $changes"})
     }
 
@@ -33,7 +33,7 @@ class ObservableListTest
         testList.addAll(listOf(5,3,5,6))
         assert(testList == listOf(1,2,3,4,5,5,3,5,6),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newAdd(testList,5..8,listOf(5,3,5,6))
+            KeyedChange(testList,emptyMap(),listOf(5,3,5,6).mapIndexed {i,e -> i+5 to e}.toMap())
         ),{"changes: $changes"})
     }
 
@@ -43,7 +43,7 @@ class ObservableListTest
         testList.addAll(2,listOf(5,3,5,6))
         assert(testList == listOf(1,2,5,3,5,6,3,4,5),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newAdd(testList,2..5,listOf(5,3,5,6))
+            KeyedChange(testList,emptyMap(),listOf(5,3,5,6).mapIndexed {i,e -> i+2 to e}.toMap())
         ),{"changes: $changes"})
     }
 
@@ -54,8 +54,8 @@ class ObservableListTest
         testList.add(4,3)
         assert(testList == listOf(1,2,3,2,3,4,5),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newAdd(testList,3..3,listOf(2)),
-            KeyedChange.newAdd(testList,4..4,listOf(3))
+            KeyedChange(testList,emptyMap(),listOf(2).mapIndexed {i,e -> i+3 to e}.toMap()),
+            KeyedChange(testList,emptyMap(),listOf(3).mapIndexed {i,e -> i+4 to e}.toMap())
         ),{"changes: $changes"})
     }
 
@@ -67,9 +67,9 @@ class ObservableListTest
         testList.add(4)
         assert(testList == listOf(1,2,3,4,5,2,3,4),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newAdd(testList,5..5,listOf(2)),
-            KeyedChange.newAdd(testList,6..6,listOf(3)),
-            KeyedChange.newAdd(testList,7..7,listOf(4))
+            KeyedChange(testList,emptyMap(),listOf(2).mapIndexed {i,e -> i+5 to e}.toMap()),
+            KeyedChange(testList,emptyMap(),listOf(3).mapIndexed {i,e -> i+6 to e}.toMap()),
+            KeyedChange(testList,emptyMap(),listOf(4).mapIndexed {i,e -> i+7 to e}.toMap())
         ),{"changes: $changes"})
     }
 
@@ -79,8 +79,8 @@ class ObservableListTest
         testList.removeAll(listOf(5,3,5,6))
         assert(testList == listOf(1,2,4),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newRemove(testList,4..4,listOf(5)),
-            KeyedChange.newRemove(testList,2..2,listOf(3))
+            KeyedChange(testList,listOf(5).mapIndexed {i,e -> i+4 to e}.toMap(),emptyMap()),
+            KeyedChange(testList,listOf(3).mapIndexed {i,e -> i+2 to e}.toMap(),emptyMap())
         ),{"changes: $changes"})
     }
 
@@ -91,8 +91,8 @@ class ObservableListTest
         assert(testList.removeAt(3) == 5)
         assert(testList == listOf(1,2,4),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newRemove(testList,2..2,listOf(3)),
-            KeyedChange.newRemove(testList,3..3,listOf(5))
+            KeyedChange(testList,listOf(3).mapIndexed {i,e -> i+2 to e}.toMap(),emptyMap()),
+            KeyedChange(testList,listOf(5).mapIndexed {i,e -> i+3 to e}.toMap(),emptyMap())
         ),{"changes: $changes"})
     }
 
@@ -103,8 +103,8 @@ class ObservableListTest
         testList.remove(4)
         assert(testList == listOf(1,3,5),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newRemove(testList,1..1,listOf(2)),
-            KeyedChange.newRemove(testList,2..2,listOf(4))
+            KeyedChange(testList,listOf(2).mapIndexed {i,e -> i+1 to e}.toMap(),emptyMap()),
+            KeyedChange(testList,listOf(4).mapIndexed {i,e -> i+2 to e}.toMap(),emptyMap())
         ),{"changes: $changes"})
     }
 
@@ -114,7 +114,7 @@ class ObservableListTest
         testList.clear()
         assert(testList.isEmpty(),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newRemove(testList,0..4,listOf(1,2,3,4,5))
+            KeyedChange(testList,listOf(1,2,3,4,5).mapIndexed {i,e -> i+0 to e}.toMap(),emptyMap())
         ),{"changes: $changes"})
     }
 
@@ -126,7 +126,7 @@ class ObservableListTest
         assert(sublist.isEmpty(),{"sublist: $sublist"})
         assert(testList == listOf(1,4,5),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newRemove(testList,1..2,listOf(2,3))
+            KeyedChange(testList,listOf(2,3).mapIndexed {i,e -> i+1 to e}.toMap(),emptyMap())
         ),{"changes: $changes"})
     }
 
@@ -138,7 +138,7 @@ class ObservableListTest
         assert(sublist.isEmpty(),{"sublist: $sublist"})
         assert(testList == listOf(1,5),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newRemove(testList,1..3,listOf(2,3,4))
+            KeyedChange(testList,listOf(2,3,4).mapIndexed {i,e -> i+1 to e}.toMap(),emptyMap())
         ),{"changes: $changes"})
     }
 
@@ -152,9 +152,9 @@ class ObservableListTest
         assert(sublist == listOf(2,3,6,7,8),{"sublist: $sublist"})
         assert(testList == listOf(1,2,3,6,7,8,4,5),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newAdd(testList,3..3,listOf(6)),
-            KeyedChange.newAdd(testList,4..4,listOf(7)),
-            KeyedChange.newAdd(testList,5..5,listOf(8))
+            KeyedChange(testList,emptyMap(),listOf(6).mapIndexed {i,e -> i+3 to e}.toMap()),
+            KeyedChange(testList,emptyMap(),listOf(7).mapIndexed {i,e -> i+4 to e}.toMap()),
+            KeyedChange(testList,emptyMap(),listOf(8).mapIndexed {i,e -> i+5 to e}.toMap())
         ),{"changes: $changes"})
     }
 
@@ -167,8 +167,8 @@ class ObservableListTest
         assert(sublist.isEmpty(),{"sublist: $sublist"})
         assert(testList == listOf(1,4,5),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newRemove(testList,2..2,listOf(3)),
-            KeyedChange.newRemove(testList,1..1,listOf(2))
+            KeyedChange(testList,listOf(3).mapIndexed {i,e -> i+2 to e}.toMap(),emptyMap()),
+            KeyedChange(testList,listOf(2).mapIndexed {i,e -> i+1 to e}.toMap(),emptyMap())
         ),{"changes: $changes"})
     }
 
@@ -182,8 +182,8 @@ class ObservableListTest
         iterator.set(10)
         assert(testList == listOf(1,2,10,10,5),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newSet(testList,2..2,listOf(3),listOf(10)),
-            KeyedChange.newSet(testList,3..3,listOf(4),listOf(10))
+            KeyedChange(testList,listOf(3).mapIndexed {i,e -> i+2 to e}.toMap(),listOf(10).mapIndexed {i,e -> i+2 to e}.toMap()),
+            KeyedChange(testList,listOf(4).mapIndexed {i,e -> i+3 to e}.toMap(),listOf(10).mapIndexed {i,e -> i+3 to e}.toMap())
         ),{"changes: $changes"})
     }
 
@@ -197,8 +197,8 @@ class ObservableListTest
         iterator.add(8)
         assert(testList == listOf(1,2,3,4,4,8,5),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newAdd(testList,3..3,listOf(4)),
-            KeyedChange.newAdd(testList,5..5,listOf(8))
+            KeyedChange(testList,emptyMap(),listOf(4).mapIndexed {i,e -> i+3 to e}.toMap()),
+            KeyedChange(testList,emptyMap(),listOf(8).mapIndexed {i,e -> i+5 to e}.toMap())
         ),{"changes: $changes"})
     }
 
@@ -212,8 +212,8 @@ class ObservableListTest
         iterator.remove()
         assert(testList == listOf(1,2,5),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange.newRemove(testList,2..2,listOf(3)),
-            KeyedChange.newRemove(testList,2..2,listOf(4))
+            KeyedChange(testList,listOf(3).mapIndexed {i,e -> i+2 to e}.toMap(),emptyMap()),
+            KeyedChange(testList,listOf(4).mapIndexed {i,e -> i+2 to e}.toMap(),emptyMap())
         ),{"changes: $changes"})
     }
 }
