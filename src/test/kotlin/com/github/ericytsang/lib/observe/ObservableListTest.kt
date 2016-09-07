@@ -9,7 +9,7 @@ class ObservableListTest
 {
     val changes:MutableList<KeyedChange<Int,Int>> = mutableListOf()
 
-    val testList = ObservableList(mutableListOf(1,2,3,4,5)).apply()
+    val testList = SimpleObservableList(mutableListOf(1,2,3,4,5)).apply()
     {
         observers += KeyedChange.Observer.new()
         {
@@ -79,8 +79,7 @@ class ObservableListTest
         testList.removeAll(listOf(5,3,5,6))
         assert(testList == listOf(1,2,4),{"testList: $testList"})
         assert(changes == listOf(
-            KeyedChange(testList,listOf(5).mapIndexed {i,e -> i+4 to e}.toMap(),emptyMap()),
-            KeyedChange(testList,listOf(3).mapIndexed {i,e -> i+2 to e}.toMap(),emptyMap())
+            KeyedChange(testList,mapOf(2 to 3,4 to 5),emptyMap())
         ),{"changes: $changes"})
     }
 

@@ -5,17 +5,12 @@ import java.util.LinkedHashSet
 /**
  * Created by surpl on 6/21/2016.
  */
-class SimpleObservableSet<V>(val wrapee:MutableSet<V>):MutableSet<V>,KeylessChange.Observable<V>
+class SimpleObservableSet<V>(val wrapee:MutableSet<V>):AbstractMutableSet<V>(),ObservableSet<V>
 {
     override val observers = LinkedHashSet<KeylessChange.Observer<V>>()
-    override val collection = object:Collection<V>
-    {
-
-    }
+    override val collection:Collection<V> get() = wrapee
 
     override val size:Int get() = wrapee.size
-    override fun isEmpty():Boolean = wrapee.isEmpty()
-    override fun contains(element:V):Boolean = wrapee.contains(element)
     override fun containsAll(elements:Collection<V>):Boolean = wrapee.containsAll(elements)
 
     override fun hashCode():Int = wrapee.hashCode()
@@ -32,14 +27,15 @@ class SimpleObservableSet<V>(val wrapee:MutableSet<V>):MutableSet<V>,KeylessChan
         }
     }
 
-    override fun addAll(elements:Collection<V>):Boolean = elements.map {add(it)}.any()
-    override fun add(element:V):Boolean
+    override fun addAll(elements:Collection<V>):Boolean
     {
-        return if (wrapee.add(element))
+        val change = KeylessChange(
+            observable = this,
+            added = elements.filter {it !in this}.toSet())
+
+        return if (change.added.isNotEmpty())
         {
-            val change = KeylessChange(
-                observable = this,
-                added = setOf(element))
+            wrapee.addAll(change.added)
             observers.forEach {it.onChange(change)}
             true
         }
@@ -49,24 +45,15 @@ class SimpleObservableSet<V>(val wrapee:MutableSet<V>):MutableSet<V>,KeylessChan
         }
     }
 
-    override fun clear()
+    override fun removeAll(elements:Collection<V>):Boolean
     {
         val change = KeylessChange(
             observable = this,
-            removed = wrapee.toSet())
-        wrapee.clear()
-        observers.forEach {it.onChange(change)}
-    }
+            removed = elements.filter {it in this}.toSet())
 
-    override fun removeAll(elements:Collection<V>):Boolean = elements.map {remove(it)}.any()
-    override fun retainAll(elements:Collection<V>):Boolean = wrapee.filter {it !in elements}.map {remove(it)}.any()
-    override fun remove(element:V):Boolean
-    {
-        return if (wrapee.remove(element))
+        return if (change.removed.isNotEmpty())
         {
-            val change = KeylessChange(
-                observable = this,
-                removed = setOf(element))
+            wrapee.removeAll(change.removed)
             observers.forEach {it.onChange(change)}
             true
         }

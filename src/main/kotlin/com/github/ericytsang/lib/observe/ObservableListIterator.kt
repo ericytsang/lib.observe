@@ -1,5 +1,7 @@
 package com.github.ericytsang.lib.observe
 
+import com.github.ericytsang.lib.iteratortolistadapter.IteratorToListAdapter
+import java.util.AbstractMap
 import java.util.LinkedHashSet
 
 /**
@@ -8,16 +10,23 @@ import java.util.LinkedHashSet
 // todo: add test cases!
 class ObservableListIterator<E>(val wrapee:MutableListIterator<E>):MutableListIterator<E>,KeyedChange.Observable<Int,E>
 {
+    override val map:Map<Int,E> get() = object:Map<Int,E>
+    {
+        private val list = IteratorToListAdapter(this@ObservableListIterator)
+        override val entries:Set<Map.Entry<Int,E>> get() = list
+            .mapIndexed {i,e -> AbstractMap.SimpleImmutableEntry(i,e)}
+            .toSet()
+        override val keys:Set<Int> get() = list.indices.toSet()
+        override val size:Int get() = list.size
+        override val values:Collection<E> = list
+        override fun containsKey(key:Int):Boolean = key in keys
+        override fun containsValue(value:E):Boolean = value in values
+        override fun get(key:Int):E = list[key]
+        override fun isEmpty():Boolean = size == 0
+    }
     override val observers = LinkedHashSet<KeyedChange.Observer<Int,E>>()
 
     private var getLastReturned:()->IndexedValue<E> = {throw IllegalStateException("neither next nor previous have been called")}
-
-    override fun get(key:Int):E?
-    {
-        while (nextIndex() < key) next()
-        while (nextIndex() > key) previous()
-        return next()
-    }
 
     override fun hasNext():Boolean = wrapee.hasNext()
     override fun hasPrevious():Boolean = wrapee.hasPrevious()

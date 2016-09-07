@@ -22,8 +22,11 @@ class SimpleObservableMap<K,V>(val wrapee:MutableMap<K,V>):AbstractMutableMap<K,
             observable = this,
             added = from.entries.associate {it.key to it.value},
             removed = wrapee.entries.filter {it.key in from.keys}.associate {it.key to it.value})
-        wrapee.putAll(from)
-        observers.forEach {it.onChange(change)}
+        if (change.added.isNotEmpty())
+        {
+            wrapee.putAll(from)
+            observers.forEach {it.onChange(change)}
+        }
         return change.removed
     }
 
@@ -32,8 +35,11 @@ class SimpleObservableMap<K,V>(val wrapee:MutableMap<K,V>):AbstractMutableMap<K,
         val change = KeyedChange(
             observable = this,
             removed = entries.filter {it.key in toRemove}.associate {it.key to it.value})
-        keys.removeAll(toRemove)
-        observers.forEach {it.onChange(change)}
+        if (change.removed.isNotEmpty())
+        {
+            keys.removeAll(toRemove)
+            observers.forEach {it.onChange(change)}
+        }
         return change.removed
     }
 }

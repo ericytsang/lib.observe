@@ -32,9 +32,9 @@ abstract class AbstractMutableMap<K,V>:MutableMap<K,V>
      */
     protected abstract fun doRemove(toRemove:Set<K>):Map<K,V>
 
-    final override fun remove(key:K):V
+    final override fun remove(key:K):V?
     {
-        return doRemove(setOf(key))[key]!!
+        return doRemove(setOf(key))[key]
     }
 
     final override fun clear()

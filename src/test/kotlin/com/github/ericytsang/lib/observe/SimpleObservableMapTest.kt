@@ -26,15 +26,15 @@ class SimpleObservableMapTest
     @Test
     fun generalTest()
     {
-        testMap.put("q",7)
-        testMap.put("w",9)
-        testMap.put("e",4)
-        testMap.put("a",1)
-        testMap.put("b",0)
-        testMap.put("c",-2)
-        testMap.remove("e")
-        testMap.remove("a")
-        testMap.remove("z")
+        assert(testMap.put("q",7) == null)
+        assert(testMap.put("w",9) == null)
+        assert(testMap.put("e",4) == null)
+        assert(testMap.put("a",1) == 1)
+        assert(testMap.put("b",0) == 2)
+        assert(testMap.put("c",-2) == 3)
+        assert(testMap.remove("e") == 4)
+        assert(testMap.remove("a") == 1)
+        assert(testMap.remove("z") == null)
         assert(changes == listOf(
             KeyedChange(testMap,emptyMap(),mapOf("q" to 7)),
             KeyedChange(testMap,emptyMap(),mapOf("w" to 9)),
@@ -111,8 +111,8 @@ class SimpleObservableMapTest
     @Test
     fun removeExistingTest()
     {
-        testMap.remove("a")
-        testMap.remove("b")
+        assert(testMap.remove("a") == 1)
+        assert(testMap.remove("b") == 2)
         assert(changes == listOf(
             KeyedChange(testMap,mapOf("a" to 1),emptyMap()),
             KeyedChange(testMap,mapOf("b" to 2),emptyMap())
@@ -125,7 +125,7 @@ class SimpleObservableMapTest
     @Test
     fun removeNonExistentTest()
     {
-        testMap.remove("z")
+        assert(testMap.remove("z") == null)
         assert(changes.isEmpty(),{"changes: $changes"})
         assert(testMap == mapOf(
             "a" to 1,

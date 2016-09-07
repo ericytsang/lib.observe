@@ -1,5 +1,6 @@
 package com.github.ericytsang.lib.observe
 
+import com.github.ericytsang.lib.iteratortolistadapter.IteratorToListAdapter
 import java.util.LinkedHashSet
 
 /**
@@ -7,6 +8,8 @@ import java.util.LinkedHashSet
  */
 class ObservableIterator<E>(val wrapee:MutableIterator<E>):MutableIterator<E>,KeylessChange.Observable<E>
 {
+    override val collection:Collection<E> get() = IteratorToListAdapter(this)
+
     override val observers = LinkedHashSet<KeylessChange.Observer<E>>()
 
     private var getLastReturned:()->E = {throw IllegalStateException("next not yet called")}
