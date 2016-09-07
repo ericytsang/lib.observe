@@ -5,7 +5,7 @@ import org.junit.Test
 /**
  * Created by surpl on 8/20/2016.
  */
-class ObservableMapTest
+class SimpleObservableMapTest
 {
     /**
      * list of changes passed to listener of [testMap] in chronological order.
@@ -15,7 +15,7 @@ class ObservableMapTest
     /**
      * the observed set to test...
      */
-    val testMap = ObservableMap(mutableMapOf("a" to 1,"b" to 2,"c" to 3)).apply()
+    val testMap = SimpleObservableMap(mutableMapOf("a" to 1,"b" to 2,"c" to 3)).apply()
     {
         observers += KeyedChange.Observer.new()
         {
@@ -75,7 +75,7 @@ class ObservableMapTest
     }
 
     @Test
-    fun putExistingTest()
+    fun putExistingTest1()
     {
         testMap.put("a",1)
         testMap.put("b",0)
@@ -84,6 +84,21 @@ class ObservableMapTest
             KeyedChange(testMap,mapOf("a" to 1),mapOf("a" to 1)),
             KeyedChange(testMap,mapOf("b" to 2),mapOf("b" to 0)),
             KeyedChange(testMap,mapOf("c" to 3),mapOf("c" to -2))
+        )
+            ,{"changes: $changes"})
+        assert(testMap == mapOf(
+            "a" to 1,
+            "b" to 0,
+            "c" to -2
+        ),{"testMap: $testMap"})
+    }
+
+    @Test
+    fun putExistingTest2()
+    {
+        testMap.putAll(mapOf("a" to 1,"b" to 0,"c" to -2))
+        assert(changes == listOf(
+            KeyedChange(testMap,mapOf("a" to 1,"b" to 2,"c" to 3),mapOf("a" to 1,"b" to 0,"c" to -2))
         )
             ,{"changes: $changes"})
         assert(testMap == mapOf(

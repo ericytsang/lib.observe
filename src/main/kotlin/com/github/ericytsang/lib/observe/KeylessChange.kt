@@ -23,6 +23,7 @@ data class KeylessChange<Value>(val observable:Observable<Value>,val removed:Set
 
     interface Observable<Value>
     {
+        val collection:Collection<Value>
         val observers:MutableSet<KeylessChange.Observer<Value>>
     }
 }

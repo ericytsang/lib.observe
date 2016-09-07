@@ -23,7 +23,7 @@ data class KeyedChange<Key,Value>(val observable:KeyedChange.Observable<Key,Valu
 
     interface Observable<Key,Value>
     {
-        operator fun get(key:Key):Value?
+        val map:Map<Key,Value>
         val observers:MutableSet<Observer<Key,Value>>
     }
 }

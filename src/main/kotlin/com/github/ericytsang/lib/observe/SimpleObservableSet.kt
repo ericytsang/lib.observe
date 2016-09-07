@@ -5,9 +5,13 @@ import java.util.LinkedHashSet
 /**
  * Created by surpl on 6/21/2016.
  */
-class ObservableSet<V>(val wrapee:MutableSet<V>):MutableSet<V>,KeylessChange.Observable<V>
+class SimpleObservableSet<V>(val wrapee:MutableSet<V>):MutableSet<V>,KeylessChange.Observable<V>
 {
     override val observers = LinkedHashSet<KeylessChange.Observer<V>>()
+    override val collection = object:Collection<V>
+    {
+
+    }
 
     override val size:Int get() = wrapee.size
     override fun isEmpty():Boolean = wrapee.isEmpty()
@@ -24,7 +28,7 @@ class ObservableSet<V>(val wrapee:MutableSet<V>):MutableSet<V>,KeylessChange.Obs
         {
             iteratorChange ->
             val revisedChange = iteratorChange.copy(observable = this)
-            this@ObservableSet.observers.forEach {it.onChange(revisedChange)}
+            this@SimpleObservableSet.observers.forEach {it.onChange(revisedChange)}
         }
     }
 

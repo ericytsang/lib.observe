@@ -5,7 +5,7 @@ import org.junit.Test
 /**
  * Created by surpl on 8/20/2016.
  */
-class ObservableSetTest
+class SimpleObservableSetTest
 {
     /**
      * list of elements added to [testSet] in chronological order.
@@ -20,7 +20,7 @@ class ObservableSetTest
     /**
      * the observed set to test...
      */
-    val testSet = ObservableSet(mutableSetOf(1,2,3,4,5)).apply()
+    val testSet = SimpleObservableSet(mutableSetOf(1,2,3,4,5)).apply()
     {
         observers += KeylessChange.Observer.new()
         {
