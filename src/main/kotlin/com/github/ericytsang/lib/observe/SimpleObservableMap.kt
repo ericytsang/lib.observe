@@ -1,8 +1,8 @@
 package com.github.ericytsang.lib.observe
 
-import java.util.*
+import java.util.LinkedHashSet
 
-class SimpleObservableMap<K,V>(val wrapee:MutableMap<K,V>):AbstractMutabeMap<K,V>(),ObservableMap<K,V>
+class SimpleObservableMap<K,V>(val wrapee:MutableMap<K,V>):AbstractMutableMap<K,V>(),ObservableMap<K,V>
 {
     override val map:Map<K,V> get() = wrapee
     override val observers = LinkedHashSet<KeyedChange.Observer<K,V>>()
@@ -10,7 +10,6 @@ class SimpleObservableMap<K,V>(val wrapee:MutableMap<K,V>):AbstractMutabeMap<K,V
     override val entries:MutableSet<MutableMap.MutableEntry<K,V>> get() = wrapee.entries
     override val keys:MutableSet<K> get() = wrapee.keys
     override val values:MutableCollection<V> get() = wrapee.values
-    override val size:Int get() = wrapee.size
     override fun get(key:K):V? = wrapee[key]
 
     override fun hashCode():Int = wrapee.hashCode()
@@ -28,12 +27,12 @@ class SimpleObservableMap<K,V>(val wrapee:MutableMap<K,V>):AbstractMutabeMap<K,V
         return change.removed
     }
 
-    override fun doRemove(keys:Set<K>):Map<K,V>
+    override fun doRemove(toRemove:Set<K>):Map<K,V>
     {
         val change = KeyedChange(
             observable = this,
-            removed = entries.filter {it.key in keys}.associate {it.key to it.value})
-        keys.forEach {wrapee.remove(it)}
+            removed = entries.filter {it.key in toRemove}.associate {it.key to it.value})
+        keys.removeAll(toRemove)
         observers.forEach {it.onChange(change)}
         return change.removed
     }

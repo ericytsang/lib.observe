@@ -3,8 +3,10 @@ package com.github.ericytsang.lib.observe
 /**
  * Created by Eric on 9/6/2016.
  */
-abstract class AbstractMutabeMap<K,V>:MutableMap<K,V>
+abstract class AbstractMutableMap<K,V>:MutableMap<K,V>
 {
+    final override val size:Int get() = keys.size
+
     final override fun containsKey(key:K):Boolean = keys.contains(key)
     final override fun containsValue(value:V):Boolean = values.contains(value)
 
@@ -26,9 +28,9 @@ abstract class AbstractMutabeMap<K,V>:MutableMap<K,V>
     }
 
     /**
-     * removes all entries whose key is in [keys]. returns a map of all removed entries.
+     * removes all entries whose key is in [toRemove]. returns a map of all removed entries.
      */
-    protected abstract fun doRemove(keys:Set<K>):Map<K,V>
+    protected abstract fun doRemove(toRemove:Set<K>):Map<K,V>
 
     final override fun remove(key:K):V
     {
