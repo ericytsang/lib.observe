@@ -17,7 +17,7 @@ class SimpleObservableSet<V>(val wrapee:MutableSet<V>):AbstractMutableSet<V>(),O
     override fun equals(other:Any?):Boolean = wrapee.equals(other)
     override fun toString():String = wrapee.toString()
 
-    override fun iterator():MutableIterator<V> = ObservableIterator(wrapee.iterator()).apply()
+    override fun iterator():MutableIterator<V> = SimpleObservableIterator(wrapee.iterator()).apply()
     {
         observers += KeylessChange.Observer.new()
         {

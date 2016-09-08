@@ -91,7 +91,7 @@ class SimpleObservableList<E>(val wrapee:MutableList<E>):AbstractMutableList<E>(
         return removed
     }
 
-    override fun listIterator(index:Int):MutableListIterator<E> = ObservableListIterator(wrapee.listIterator(index)).apply()
+    override fun listIterator(index:Int):MutableListIterator<E> = SimpleObservableListIterator(wrapee.listIterator(index)).apply()
     {
         observers += KeyedChange.Observer.new()
         {

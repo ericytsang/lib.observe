@@ -9,7 +9,7 @@ class ObservableIteratorTest
 {
     val changes = mutableListOf<KeylessChange<Int>>()
 
-    val testIterator = ObservableIterator(mutableSetOf(1,2,3,4,5).iterator()).apply()
+    val testIterator = SimpleObservableIterator(mutableSetOf(1,2,3,4,5).iterator()).apply()
     {
         observers += KeylessChange.Observer.new()
         {
