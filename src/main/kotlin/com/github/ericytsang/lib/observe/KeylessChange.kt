@@ -3,7 +3,7 @@ package com.github.ericytsang.lib.observe
 /**
  * object that contains data about a change that occurred to a collection.
  */
-data class KeylessChange<Value>(val observable:Observable<Value>,val removed:Set<Value> = emptySet(),val added:Set<Value> = emptySet())
+data class KeylessChange<Value>(val observable:Observable<Value>,val removed:Collection<Value> = emptySet(),val added:Collection<Value> = emptySet())
 {
     interface Observer<Value>
     {
